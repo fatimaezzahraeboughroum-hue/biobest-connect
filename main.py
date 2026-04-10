@@ -26,11 +26,19 @@ st_autorefresh(interval=10000, key="datarefresh")
 
 st.sidebar.info("🔄 Actualisation auto : 10s")
 
-# --- 2. CONNEXION ---
+
+# --- 2. CONNEXION (VERSION HYBRIDE) ---
 @st.cache_resource
 def connecter_google():
     try:
-        gc = gspread.service_account(filename='creds.json')
+        # SI on est sur Internet (Streamlit Cloud), on utilise les Secrets
+        if "gcp_service_account" in st.secrets:
+            info_cles = dict(st.secrets["gcp_service_account"])
+            gc = gspread.service_account_from_dict(info_cles)
+        # SINON, on utilise le fichier local sur ton PC
+        else:
+            gc = gspread.service_account(filename='creds.json')
+
         sh = gc.open_by_key("1GXK6mcAY7Fhtfj_miGBu2_xXciaFpGsUnryc4n0ln1E")
         return sh.get_worksheet(0)
     except Exception as e:
